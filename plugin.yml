@@ -1,0 +1,28 @@
+name: Core
+api: [3.0.0, 4.0.0]
+main: core\bumcbe\main
+version: 1.0.0
+author: Rex aka WOGrex
+website: https://github.com/RexZetronYT23/
+commands:
+  gm:
+    description: "Wechsel deinen Gamemode"
+    usage: "/gm [0/1/2/3]"
+  fly:
+    description: "Flieg!"
+    usage: "/fly"
+  heal:
+    description: "Heile dich!"
+    usage: "/heal"
+  feed:
+    description: "Fütter dich!"
+    usage: "/feed"
+  selfop:
+    description: "Gib dir op!"
+    usage: "/selfop"
+  akkuleer:
+    description: "Dein Akku ist leer!"
+    usage: "/akkuleer"
+  afk:
+    description: "Sei AFK!"
+    usage: "/afk"
