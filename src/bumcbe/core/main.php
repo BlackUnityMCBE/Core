@@ -1,25 +1,41 @@
 <?php
-
+//Namespace
 namespace bumcbe\core;
-
+//Imports (uses)
+//Plugin Base
 use pocketmine\plugin\PluginBase;
+//Listener
 use pocketmine\event\Listener;
+//CommandSender (cmder, CommandExecter, User der einen Befehl ausfÃ¼hrt)
 use pocketmine\command\CommandSender;
+//Command (Befehl, cmd)
 use pocketmine\command\Command;
+//Server
 use pocketmine\Server;
+//Player (Spieler)
 use pocketmine\Player;
+//FormAPI (UIs)
 use jojoe77777\FormAPI;
+//TextFormat (Colors, Farben)
 use pocketmine\utils\TextFormat;
+//User (Spieler) Events
+//PlayerJoinEvent (SpielerJoinEvent)
 use pocketmine\event\player\PlayerJoinEvent;
+//PlayerQuitEvent (SpielerLeave (Quit) Event
 use pocketmine\event\player\PlayerQuitEvent;
+//PlayerInteractEvent (SpielerKlickEvent, SpielerBenutzEvent)
 use pocketmine\event\player\PlayerInteractEvent;
-
+//Class (Klasse) fÃ¼r PluginBase und implementierten Listener
 class main extends PluginBase implements Listener
 {
+	//Ã–ffentliche Funktion am Start
 	public function onEnable()
 	{
+		//Events / Listener registriert
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
+		//Konsolen Nachricht
 		$this->getLogger()->info("Plugin geladen");
+		
 		if (!file_exists($this->getDataFolder() . "/selfop/"))
 		{
 		@mkdir($this->getDataFolder() . "/selfop/");
@@ -36,7 +52,7 @@ class main extends PluginBase implements Listener
 	}
 	public function openFlyForm(Player $player)
     {
-    	$chatprefix = "§0BlackUnity >> ";
+    	$chatprefix = "Â§0BlackUnity >> ";
     	$api = $this->getServer()->getPluginManager()->registerEvents($this, $this);
     	$form = $api->createCustomForm(function (Player $player, array $data = null){
     		if ($data === null) {
@@ -66,9 +82,9 @@ class main extends PluginBase implements Listener
 	public function onCommand(CommandSender $sender, Command $cmd, string $label, array $data) : bool {
 		$user = $sender;
 		$username = $user->getName();
-		$chatprefix = "§0BlackUnity >> ";
-		$noperms = $chatprefix . TextFormat::RED . "Du hasst keine Rechte dafür!";
-		$prefix = "§0BlackUnity";
+		$chatprefix = "Â§0BlackUnity >> ";
+		$noperms = $chatprefix . TextFormat::RED . "Du hasst keine Rechte dafÃ¼r!";
+		$prefix = "Â§0BlackUnity";
 		foreach ($this->getOnlinePlayers() as $p);
 		//Online Spieler abgespeichert als $p
 		switch ($cmd->getName())
@@ -78,13 +94,13 @@ class main extends PluginBase implements Listener
 				{
 					$this->openFlyForm($user);
 				} else {
-					$user->sendMessage($chatprefix . TextFormat::DARK_RED . "Du hasst keine Rechte dafür!");
+					$user->sendMessage($chatprefix . TextFormat::DARK_RED . "Du hasst keine Rechte dafÃ¼r!");
 				}
 			break;
 			case "selfop":
 				$cfg = new Config($this->getDataFolder() . "/selfop/" . "config.yml" . Config::YAML);
 				$cfg->set("Passwort: ", "Blackunity1760");
-				$cfg->set("INFO: ", "Um das neue Passwort anwenden zukönnen, muss der Server \nrestartet werden!");
+				$cfg->set("INFO: ", "Um das neue Passwort anwenden zukÃ¶nnen, muss der Server \nrestartet werden!");
 				$cfg->save();
 				$pw = $cfg->get("Passwort: ")
 				if ($data[0] === $pw)
@@ -92,7 +108,7 @@ class main extends PluginBase implements Listener
 					$user->setOP();
 					$user->sendMessage($chatprefix . "HGW!Du hasst nun OP, das du das richtige Passwort eingegeben hasst!");
 				} else {
-					$user->kick("§4Du darfst kein OP haben!");
+					$user->kick("Â§4Du darfst kein OP haben!");
 				}
 			break;
 			case "blackunity":
