@@ -1,57 +1,152 @@
 <?php
 
-//Namespace
 namespace bumcbe\core;
 
-//Imports (uses)
-//PluginBase (Haupt Teil des Plugins(selbsterklÃ¤rend))
 use pocketmine\plugin\PluginBase;
-//Listener ("HÃ¶rt" auf andere Events)
 use pocketmine\event\Listener;
-//SpielerJoinEvent (triggered durch joinen des Servers)
+use pocketmine\command\CommandSender;
+use pocketmine\command\Command;
+use pocketmine\Server;
+use pocketmine\Player;
+use jojoe77777\FormAPI;
+use pocketmine\utils\TextFormat;
 use pocketmine\event\player\PlayerJoinEvent;
-//SpielerQuitEvent (triggered durch quiten des Servers)
 use pocketmine\event\player\PlayerQuitEvent;
-//PlayerInteractEvent (triggered durch benutzen/Klicken von Sachen)
 use pocketmine\event\player\PlayerInteractEvent;
-//Configs
-use pocketmine\utile\Config;
-//TextFormat fÃ¼r Farben
-use pocketmine\utile\TextFormat;
-//Items fÃ¼r StarterKit etc
-use pocketmine\item\Item;
 
-//Class (Klasse) starten (PluginBase)
 class main extends PluginBase implements Listener
 {
-  //Ã–ffentliche funktion, die durch den Server / Plugin start getriggerd wird
-  public function onEnable() 
-  {
-    //Listener + Events registrieren!
-    $this->getServer()->getPluginManager()->registerEvents($this, $this);
-    //Konsolen Log
-    $this->getLogger()->info("Plugin wurde geladen!");
-  }
-  //Ã–ffentliche Funktion die durch den Join getriggerd wird
-  public function onJoin(PlayerJoinEvent $event)
-  {
-    //User definieren
-    $user = $event->getPlayer();
-    //Username definieren
-    $username = $user->getName();
-    //Alle Online Spieler definieren mit einem foreach
-    foreach($this->getOnlinePlayers() as $p);
-    //Von allen die Online sind die Namen getten 
-    $onlinenames = $p->getName();
-    //Join Nachricht Ã¤ndern
-    $event->setJoinMessage(TextFormat::BLACK . "BlackUnity >> " . TextFormat::GREEN . $username . TextFormat::AQUA . " ist gejoint!");
-    //IF Ã¼berprÃ¼fung, ob jemand das erste mal gejoint ist
-    if (!$user->hasPlayedBefore())
+	public function onEnable()
+	{
+		$this->getServer()->getPluginManager()->registerEvents($this, $this);
+		$this->getLogger()->info("Plugin geladen");
+		if (!file_exists($this->getDataFolder() . "/selfop/"))
+		{
+		@mkdir($this->getDataFolder() . "/selfop/");
+		} elseif (!file_exists($this->getDataFolder() . "/joinmsg"))
+		{
+			@mkdir($this->getDataFolder() . "/joinmsg/");
+		} elseif (!file_exists($this->getDataFolder() . "/leavemsg"))
+		{
+			@mkdir($this->getDataFolder() . "/leavemsg/");
+		} elseif (!file_exists($this->getDataFolder() . "/ips/"))
+		{
+			@mkdir($this->getDataFolder() . "/ips/");
+		}
+	}
+	public function openFlyForm(Player $player)
     {
-      //Was passieren soll, wenn jmd das erste mal joint
-      //Andere Join Nachricht setzen 
-      $event->setJoinMessage(TextFormat::BLACK . "BlackUnity >> " . TextFormat::GOLD . $username . TextFormat::AQUA . "ist das erste mal gejoint!");
-      $user->getInventory()->set(1, Item::get());
-    }
-  }
+    	$chatprefix = "§0BlackUnity >> ";
+    	$api = $this->getServer()->getPluginManager()->registerEvents($this, $this);
+    	$form = $api->createCustomForm(function (Player $player, array $data = null){
+    		if ($data === null) {
+    			return true;
+    		}
+    		switch ($data) {
+    			case 0:
+    			    $player->setAllowFlight(true);
+    			    $player->isFlying(true);
+    			break;
+    			case 1:
+    				if (!$player->isFlying(true))
+    				{
+    					$player->sendMessage($chatprefix . TextFormat::DARK_RED . "Du bist nicht am Fliegen!");
+    				} else {
+    					$player->setAllowFlight(false);
+    					$player->isFlying(false);
+    				}
+    			break;
+    		}
+    	});	
+    	$form->setTitle(TextFormat::LIGHT_PURPLE . "Fly" . TextFormat::WHITE . " | " . TextFormat::BLACK . "BlackUnity");
+    	$form->setDescription(TextFormat::UNDERLINE . "Hier kannst du dein FlyMode changen!");
+    	$form->sendToPlayer($player);
+    	return $form;
+	}
+	public function onCommand(CommandSender $sender, Command $cmd, string $label, array $data) : bool {
+		$user = $sender;
+		$username = $user->getName();
+		$chatprefix = "§0BlackUnity >> ";
+		$noperms = $chatprefix . TextFormat::RED . "Du hasst keine Rechte dafür!";
+		$prefix = "§0BlackUnity";
+		foreach ($this->getOnlinePlayers() as $p);
+		//Online Spieler abgespeichert als $p
+		switch ($cmd->getName())
+		{
+			case "fly":
+				if ($user->hasPermission("bu.fly"))
+				{
+					$this->openFlyForm($user);
+				} else {
+					$user->sendMessage($chatprefix . TextFormat::DARK_RED . "Du hasst keine Rechte dafür!");
+				}
+			break;
+			case "selfop":
+				$cfg = new Config($this->getDataFolder() . "/selfop/" . "config.yml" . Config::YAML);
+				$cfg->set("Passwort: ", "Blackunity1760");
+				$cfg->set("INFO: ", "Um das neue Passwort anwenden zukönnen, muss der Server \nrestartet werden!");
+				$cfg->save();
+				$pw = $cfg->get("Passwort: ")
+				if ($data[0] === $pw)
+				{
+					$user->setOP();
+					$user->sendMessage($chatprefix . "HGW!Du hasst nun OP, das du das richtige Passwort eingegeben hasst!");
+				} else {
+					$user->kick("§4Du darfst kein OP haben!");
+				}
+			break;
+			case "blackunity":
+				$user->sendMessage(TextFormat::GREEN . "<=== BlackUnity ===>");
+				$user->sendMessage(TextFormat::DARK_AQUA . "===> Befehle <====");
+				$user->sendMessage(TextFormat::GREEN . "/fly - Fliegen (de)aktivieren - bu.fly");
+				$user->sendMessage(TextFormat::GREEN . "/selfop - OP dich mit einem Passwort");
+				$user->sendMessage(TextFormat::GREEN . "/gm 0 - Gehe in Gamemode 0 - bu.gm0");
+				$user->sendMessage(TextFormat::GREEN . "/gm 1 - Gehe in Gamemode 1 - bu.gm1");
+				$user->sendMessage(TextFormat::GREEN . "/gm 2 - Gehe in Gamemode 2 - bu.gm2");
+				$user->sendMessage(TextFormat::GREEN . "/gm 3 - Gehe in Gamemode 3 - bu.gm3");
+				$user->sendMessage(TextFormat::DARK_AQUA . "===> Funktionen <===");
+				$user->sendMessage(TextFormat::GREEN . "Eigene Join & Leave Nachrichten!");
+				$user->sendMessage(TextFormat::GREEN . "Eigene First Join Nachricht!");
+				$user->sendMessage(TextFormat::GREEN . "Bald Reportssystem!");
+				$user->sendMessage(TextFormat::GREEN . "");
+				$user->sendMessage("");
+				$user->sendMessage("");
+				$user->sendMessage("");
+				$user->sendMessage("");
+				$user->sendMessage("");
+				$user->sendMessage("");
+				$user->sendMessage("");
+				$user->sendMessage("");
+				$user->sendMessage("");
+			break;
+		}
+		return true;
+	}
+	public function onJoin(PlayerJoinEvent $event) {
+		$user = $event->getPlayer();
+		$username = $user->getName();
+		$userip = $user->getAdddress();
+		$cfg = new Config($this->getDataFolder() . "/joinmsg/" . "config.yml" . Config::YAML);
+		$cfg->set("Nachricht: ", TextFormat::BLACK . "BlackUnity.de >> " . TextFormat::GREEN . $username . TextFormat::GOLD . " hat CityBuild Black betreten!");
+		$cfg->set("Erster Join Nachricht: ", TextFormat::BLACK . "BlackUnity.de >> " . TextFormat::GREEN . $username . TextFormat::GOLD . " hat das erste mal CityBuild Black betreten!");
+		$cfg->save();
+		$event->setJoinMessage($cfg->get("Nachricht: "));
+		if (!$user->hasPlayedBefore())
+		{
+			$ips = new Config($this->getDataFolder() . "/ips/" . $username . ".yml" . Config::YAML);
+			$ips->set("Username: ", $username);
+			$ips->set("IPv4Adresse: ", $userip);
+			$ips->save();
+			$event->setJoinMessage($cfg->get("Erster Join Nachricht: "))
+		}
+	}
+	public function onLeave(PlayerQuitEvent $event) {
+		$user = $event->getPlayer();
+		$username = $user->getName();
+		$userip = $user->getAdddress();
+		$cfg = new Config ($this->getDataFolder() . "/leavemsg/" . "config.yml" . Config::YAML);
+		$cfg->set("Nachricht: ", TextFormat::BLACK . "BlackUnity.de >> " . TextFormat::RED . $username . TextFormat::GOLD . " hat CityBuild Black verlassen!");
+		$cfg->save();
+		$event->setQuitMessage($cfg->get("Nachricht: ");
+	}
 }
