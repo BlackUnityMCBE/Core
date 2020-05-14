@@ -16,6 +16,8 @@ use pocketmine\Server;
 use pocketmine\Player;
 //FormAPI (UIs)
 use jojoe77777\FormAPI;
+//SimpleForm (UI art)
+use jojoe77777\FormAPI\SimpleForm;
 //TextFormat (Colors, Farben)
 use pocketmine\utils\TextFormat;
 //User (Spieler) Events
@@ -48,13 +50,16 @@ class main extends PluginBase implements Listener
 		} elseif (!file_exists($this->getDataFolder() . "/ips/"))
 		{
 			@mkdir($this->getDataFolder() . "/ips/");
+		} elseif (!file_exists($this->getDataFolder() . "/timer/")
+		{
+			@mkdir($this->getDataFolder() . "/timer/");
 		}
 	}
 	public function openFlyForm(Player $player)
-    {
+        {
     	$chatprefix = "§0BlackUnity >> ";
-    	$api = $this->getServer()->getPluginManager()->registerEvents($this, $this);
-    	$form = $api->createCustomForm(function (Player $player, array $data = null){
+    	$api = $this->getServer()->getPluginManager()->getPlugin("FormAPI");
+    	$form = $api->createCustomForm(function (Player $player, int $data = null){
     		if ($data === null) {
     			return true;
     		}
@@ -62,6 +67,7 @@ class main extends PluginBase implements Listener
     			case 0:
     			    $player->setAllowFlight(true);
     			    $player->isFlying(true);
+			    $player->sendMessage($chatprefix . TextFormat::GREEN . "Du kannst nun fliegen!");
     			break;
     			case 1:
     				if (!$player->isFlying(true))
@@ -124,16 +130,22 @@ class main extends PluginBase implements Listener
 				$user->sendMessage(TextFormat::GREEN . "Eigene Join & Leave Nachrichten!");
 				$user->sendMessage(TextFormat::GREEN . "Eigene First Join Nachricht!");
 				$user->sendMessage(TextFormat::GREEN . "Bald Reportssystem!");
-				$user->sendMessage(TextFormat::GREEN . "");
-				$user->sendMessage("");
-				$user->sendMessage("");
-				$user->sendMessage("");
-				$user->sendMessage("");
-				$user->sendMessage("");
-				$user->sendMessage("");
-				$user->sendMessage("");
-				$user->sendMessage("");
-				$user->sendMessage("");
+				$user->sendMessage(TextFormat::GREEN . "Mehr kommt!");
+			break;
+			case "timer":
+				$cfg = new Config($this->getDataFolder() . "/timer/" . "timer.yml" . Config::YAML);
+				if ($args[0] == "true")
+				{
+					$cfg->set("Aktiviert: ", "true");
+					$cfg->save();
+				} elseif ($args[0] == "false") {
+					$cfg->set("Akiviert: ", "false");
+					$cfg->save();
+				}
+				if ($cfg->get("Aktiviert: ") === "true")
+				{
+					$this->getScheduler()->scheduleRepeatingTask(new TimeTask($this), 20);
+				}
 			break;
 		}
 		return true;
@@ -164,5 +176,5 @@ class main extends PluginBase implements Listener
 		$cfg->set("Nachricht: ", TextFormat::BLACK . "BlackUnity.de >> " . TextFormat::RED . $username . TextFormat::GOLD . " hat CityBuild Black verlassen!");
 		$cfg->save();
 		$event->setQuitMessage($cfg->get("Nachricht: ");
-	}
+	}			       
 }
